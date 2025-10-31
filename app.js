@@ -145,6 +145,16 @@ function renderTable(name, fields){
       tdAction.appendChild(printBtn);
     }
 
+// for depenses rows add print button
+if(name === "depenses"){
+  const printBtn = document.createElement("button");
+  printBtn.className = "btn print";
+  printBtn.textContent = "🖨️";
+  printBtn.style.marginLeft = "6px";
+  printBtn.onclick = () => printSingleDepense(item);
+  tdAction.appendChild(printBtn);
+}
+
     tbody.appendChild(tr);
   });
 }
@@ -167,7 +177,7 @@ function openModal(type, idx = null){
     encaissements: [{id:"date",label:"Date",type:"date"},{id:"locataire",label:"Locataire",type:"select",optionsFrom:"locataires",optionValue:"nom"},{id:"bien",label:"Bien",type:"select",optionsFrom:"biens",optionValue:"bien"},{id:"methode",label:"Méthode",type:"select",options:["Virement","Chèque","Espèces"]},{id:"montant",label:"Montant (€)"}],
     quittances: [{id:"locataire",label:"Locataire",type:"select",optionsFrom:"locataires",optionValue:"nom"},{id:"montant",label:"Montant (€)"},{id:"date",label:"Date de paiement",type:"date"}],
     revisions: [{id:"bien",label:"Bien",type:"select",optionsFrom:"biens",optionValue:"bien"},{id:"ancien",label:"Ancien Loyer (€)"},{id:"nouveau",label:"Nouveau Loyer (€)"},{id:"date",label:"Date de révision",type:"date"}],
-    depenses: [{ id: "date", label: "Date", type: "date" },{ id: "categorie", label: "Catégorie", type: "select", options: ["Réparation","Assurance","Charges","Taxe","Autre"] },{ id: "description", label: "Description" },{ id: "montant", label: "Montant (€)" }],
+    depenses: [{ id: "date", label: "Date", type: "date" },{ id: "categorie", label: "Catégorie", type: "select", options: ["Réparations","Assurances","Charges","Taxes","Autres"] },{ id: "description", label: "Description" },{ id: "montant", label: "Montant (€)" }],
 	documents: [] // not used as modal
   };
 
@@ -628,6 +638,84 @@ function refreshDepensesSummary() {
 // Ajouter une dépense via le modal
 safeGet("btn-add-depense")?.addEventListener("click", () => {
   openModal("depenses"); // ouvre le panneau immédiatement
+});
+
+// =============================
+// IMPRESSION DÉPENSES (PDF)
+// =============================
+
+// Impression d'une seule dépense
+function printSingleDepense(depense) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFillColor(204, 0, 0);
+  doc.rect(0, 0, 210, 30, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.text("DÉPENSES", 105, 18, { align: "center" });
+
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(12);
+  let y = 48;
+  doc.text(`Date : ${depense.date ? fmtDateFR(depense.date) : ""}`, 20, y); y += 8;
+  doc.text(`Catégorie : ${depense.categorie || ""}`, 20, y); y += 8;
+  doc.text(`Description : ${depense.description || ""}`, 20, y); y += 8;
+  doc.text(`Montant : ${fmtAmount(depense.montant)} €`, 20, y);
+
+  window.open(URL.createObjectURL(doc.output("blob")), "_blank");
+}
+
+// Impression globale des dépenses
+safeGet("btn-print-depenses")?.addEventListener("click", () => {
+  const depenses = data.depenses.slice().sort((a, b) => (b.date ? new Date(b.date) - new Date(a.date) : 0));
+  if (depenses.length === 0) {
+    alert("Aucune dépense à imprimer.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  doc.setFillColor(204, 0, 0);
+  doc.rect(0, 0, 210, 25, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(16);
+  doc.text("Historique des Dépenses", 105, 15, { align: "center" });
+
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(11);
+  doc.text(`Date du rapport : ${new Date().toLocaleDateString("fr-FR")}`, 14, 34);
+
+  let y = 46;
+  doc.setFont("helvetica", "bold");
+  doc.text("Date", 14, y);
+  doc.text("Catégorie", 50, y);
+  doc.text("Description", 100, y);
+  doc.text("Montant (€)", 190, y, { align: "right" });
+  y += 8;
+
+  doc.setFont("helvetica", "normal");
+  let total = 0;
+
+  depenses.forEach((d) => {
+    doc.text(d.date ? fmtDateFR(d.date) : "", 14, y);
+    doc.text(d.categorie || "", 50, y);
+    doc.text((d.description || "").substring(0, 40), 100, y);
+    doc.text(`${fmtAmount(d.montant)} €`, 190, y, { align: "right" });
+    total += Number(d.montant) || 0;
+    y += 8;
+    if (y > 270) {
+      doc.addPage();
+      y = 20;
+    }
+  });
+
+  doc.setFont("helvetica", "bold");
+  doc.text("TOTAL :", 140, y + 8);
+  doc.text(`${total.toFixed(2)} €`, 190, y + 8, { align: "right" });
+
+  window.open(URL.createObjectURL(doc.output("blob")), "_blank");
 });
 
 
