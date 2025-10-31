@@ -10,6 +10,7 @@ let data = {
   encaissements: JSON.parse(localStorage.getItem("encaissements") || "[]"),
   quittances: JSON.parse(localStorage.getItem("quittances") || "[]"),
   revisions: JSON.parse(localStorage.getItem("revisions") || "[]"),
+  depenses: JSON.parse(localStorage.getItem("depenses") || "[]"),
   documents: JSON.parse(localStorage.getItem("documents") || "[]")
 };
 
@@ -41,6 +42,7 @@ safeGet("btn-biens") && (safeGet("btn-biens").onclick = ()=> showSection("sectio
 safeGet("btn-locataires") && (safeGet("btn-locataires").onclick = ()=> showSection("section-locataires"));
 safeGet("btn-loyers") && (safeGet("btn-loyers").onclick = ()=> showSection("section-loyers"));
 safeGet("btn-encaissements") && (safeGet("btn-encaissements").onclick = ()=> showSection("section-encaissements"));
+safeGet("btn-depenses") && (safeGet("btn-depenses").onclick = ()=> showSection("section-depenses"));
 safeGet("btn-quittances") && (safeGet("btn-quittances").onclick = ()=> showSection("section-quittances"));
 safeGet("btn-revisions") && (safeGet("btn-revisions").onclick = ()=> showSection("section-revisions"));
 safeGet("btn-documents") && (safeGet("btn-documents").onclick = ()=> showSection("section-documents"));
@@ -165,7 +167,8 @@ function openModal(type, idx = null){
     encaissements: [{id:"date",label:"Date",type:"date"},{id:"locataire",label:"Locataire",type:"select",optionsFrom:"locataires",optionValue:"nom"},{id:"bien",label:"Bien",type:"select",optionsFrom:"biens",optionValue:"bien"},{id:"methode",label:"Méthode",type:"select",options:["Virement","Chèque","Espèces"]},{id:"montant",label:"Montant (€)"}],
     quittances: [{id:"locataire",label:"Locataire",type:"select",optionsFrom:"locataires",optionValue:"nom"},{id:"montant",label:"Montant (€)"},{id:"date",label:"Date de paiement",type:"date"}],
     revisions: [{id:"bien",label:"Bien",type:"select",optionsFrom:"biens",optionValue:"bien"},{id:"ancien",label:"Ancien Loyer (€)"},{id:"nouveau",label:"Nouveau Loyer (€)"},{id:"date",label:"Date de révision",type:"date"}],
-    documents: [] // not used as modal
+    depenses: [{ id: "date", label: "Date", type: "date" },{ id: "categorie", label: "Catégorie", type: "select", options: ["Réparation","Assurance","Charges","Taxe","Autre"] },{ id: "description", label: "Description" },{ id: "montant", label: "Montant (€)" }],
+	documents: [] // not used as modal
   };
 
   const item = (idx !== null && Array.isArray(data[type])) ? data[type][idx] : {};
@@ -573,17 +576,60 @@ function refreshTauxRemplissage() {
 // =============================
 // Refresh all view
 // =============================
-function refreshAll(){
-  renderProprietaires(); renderBiens(); renderLocataires(); renderLoyers();
-  renderEncaissements(); renderQuittances(); renderRevisions(); renderDocuments();
-  refreshDashboard(); refreshEncaissementsSummary();
+
+function refreshAll() {
+  renderProprietaires();
+  renderBiens();
+  renderLocataires();
+  renderLoyers();
+  renderEncaissements();
+  renderDepenses(); // ⚠️ ajoute ceci
+  renderQuittances();
+  renderRevisions();
+  renderDocuments();
+  refreshDashboard();
+  refreshEncaissementsSummary();
+  refreshDepensesSummary();
 }
+
 function renderProprietaires(){ renderTable("proprietaires", ["nom","prenom","tel","email"]); }
 function renderBiens(){ renderTable("biens", ["bien","adresse","type","surface","chambres","infos","loyer"]); }
 function renderLocataires(){ renderTable("locataires", ["nom","prenom","tel","notes"]); }
 function renderLoyers(){ renderTable("loyers", ["locataire","bien","montant","date"]); }
 function renderEncaissements(){ renderTable("encaissements", ["date","locataire","bien","methode","montant"]); }
 function renderQuittances(){ renderTable("quittances", ["locataire","montant","date"]); }
+
+
+// =============================
+// DÉPENSES
+// =============================
+
+// Afficher le tableau de dépenses
+function renderDepenses() {
+  renderTable("depenses", ["date", "categorie", "description", "montant"]);
+  refreshDepensesSummary();
+}
+
+// Rafraîchir le total et la date
+function refreshDepensesSummary() {
+  const depenses = loadData("depenses") || [];
+  const total = depenses.reduce((sum, d) => sum + (parseFloat(d.montant) || 0), 0);
+
+  const elTotal = safeGet("depenses-total");
+  if (elTotal) elTotal.textContent = "€" + total.toFixed(2);
+
+  const elDash = safeGet("dash-depenses-total");
+  if (elDash) elDash.textContent = "€" + total.toFixed(2);
+
+  const elDate = safeGet("depenses-date");
+  if (elDate) elDate.textContent = new Date().toLocaleDateString("fr-FR");
+}
+
+// Ajouter une dépense via le modal
+safeGet("btn-add-depense")?.addEventListener("click", () => {
+  openModal("depenses"); // ouvre le panneau immédiatement
+});
+
 
 // =============================
 // Init
@@ -652,4 +698,26 @@ function restoreData() {
     reader.readAsText(file);
   };
   input.click();
+}
+
+// =============================
+// DÉPENSES
+// =============================
+function renderDepenses() {
+  renderTable("depenses", ["date", "categorie", "description", "montant"]);
+}
+
+// Ajouter une dépense
+safeGet("btn-add-depense") && (safeGet("btn-add-depense").onclick = ()=> openModal("depenses"));
+
+// Résumé dépenses (total + date)
+function refreshDepensesSummary(){
+  const total = (Array.isArray(data.depenses) ? data.depenses : []).reduce((s,d)=> s + (Number(d.montant)||0), 0);
+  const elTotal = safeGet("depenses-total");
+  const elDate = safeGet("depenses-date");
+  if(elTotal) elTotal.textContent = `€${total.toFixed(2)}`;
+  if(elDate) elDate.textContent = new Date().toLocaleDateString("fr-FR");
+  // si tu as un champ dans le dashboard : dash-depenses-total, tu peux aussi le mettre à jour :
+  const dashEl = safeGet("dash-depenses-total");
+  if(dashEl) dashEl.textContent = `€${total.toFixed(2)}`;
 }
