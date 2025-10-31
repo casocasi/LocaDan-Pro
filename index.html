@@ -82,6 +82,13 @@
     .summary { background:#fff; padding:12px; border-radius:8px; display:flex; gap:20px; align-items:center; box-shadow:0 4px 12px rgba(2,6,23,0.04); }
     .summary .title { font-weight:700; color:#0f172a; }
     .enc-date { color:#fff; background:#2563eb; padding:6px 10px; border-radius:8px; font-weight:600; }
+	
+	aside button {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
     #taux-remplissage {
     font-size: 2rem;
@@ -97,24 +104,26 @@
 
 <body>
   <div class="app">
-    <aside>
-      <h1>🏠 LocaDan Pro</h1>
-      <button id="btn-dashboard" class="active">Tableau de bord</button>
-      <button id="btn-proprietaires">Propriétaires</button>
-      <button id="btn-biens">Biens</button>
-      <button id="btn-locataires">Locataires</button>
-      <button id="btn-loyers">Appel des loyers</button>
-      <button id="btn-encaissements">Encaissements</button>
-	  <button id="btn-depenses">💸 Dépenses</button>
-      <button id="btn-quittances">Quittances</button>
-      <button id="btn-revisions">Révisions des loyers</button>
-      <button id="btn-documents">Documents</button>
-	  <hr>
-      <li><button onclick="backupData()">💾 Sauvegarder</button></li>
-      <li><button onclick="restoreData()">🔁 Restaurer</button></li>
-    </aside>
+  
+  <aside>
+  <h1>🏠 LocaDan Pro</h1>
+  <button id="btn-dashboard" class="active">📊 Tableau de bord</button>
+  <button id="btn-proprietaires">👤 Propriétaires</button>
+  <button id="btn-biens">🏢 Biens</button>
+  <button id="btn-locataires">🧍 Locataires</button>
+  <button id="btn-loyers">📅 Appel des loyers</button>
+  <button id="btn-encaissements">💰 Encaissements</button>
+  <button id="btn-depenses">💸 Dépenses</button>
+  <button id="btn-quittances">🧾 Quittances</button>
+  <button id="btn-revisions">📈 Révisions des loyers</button>
+  <button id="btn-documents">📁 Documents</button>
+  <hr style="margin:12px 0;border-color:rgba(255,255,255,0.2)">
+  <li><button onclick="backupData()">💾 Sauvegarder</button></li>
+  <li><button onclick="restoreData()">🔁 Restaurer</button></li>
+</aside>
 
     <main>
+	
       <!-- DASHBOARD -->
 <section id="section-dashboard" class="active">
   <h2 class="text-3xl font-bold mb-6">Tableau de bord LocaDan Pro 📊</h2>
@@ -251,10 +260,13 @@
 
 <!-- DÉPENSES -->
 <section id="section-depenses">
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-    <h2 class="text-xl font-bold">Dépenses</h2>
+ <div style="display:flex;justify-content:space-between;align-items:center;">
+  <h2 class="text-xl font-bold">Dépenses</h2>
+  <div style="display:flex;gap:8px;">
     <button id="btn-add-depense" class="btn primary">➕ Ajouter</button>
+    <button id="btn-print-depenses" class="btn print">🖨️ Imprimer PDF</button>
   </div>
+</div>
 
   <div class="summary" style="margin-top:6px;">
     <div style="font-weight:800;">Total des dépenses : <span id="depenses-total">€0.00</span></div>
