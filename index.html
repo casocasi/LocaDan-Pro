@@ -105,6 +105,7 @@
       <button id="btn-locataires">Locataires</button>
       <button id="btn-loyers">Appel des loyers</button>
       <button id="btn-encaissements">Encaissements</button>
+	  <button id="btn-depenses">💸 Dépenses</button>
       <button id="btn-quittances">Quittances</button>
       <button id="btn-revisions">Révisions des loyers</button>
       <button id="btn-documents">Documents</button>
@@ -159,6 +160,15 @@
       <div id="taux-remplissage" class="text-3xl font-extrabold text-blue-600">0%</div>
     </div>
   </div>
+  
+  <!-- Total Dépenses -->
+<div class="bg-white p-6 rounded-2xl shadow-md mt-4 flex items-center justify-between">
+  <div>
+    <h3 class="text-lg font-bold text-gray-700">Total des dépenses</h3>
+  </div>
+  <div class="text-3xl font-extrabold text-red-600" id="dash-depenses-total">€0.00</div>
+</div>
+  
 </section>
 
       <!-- PROPRIETAIRES -->
@@ -238,6 +248,32 @@
           <tbody id="encaissements-table-body"></tbody>
         </table>
       </section>
+
+<!-- DÉPENSES -->
+<section id="section-depenses">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2 class="text-xl font-bold">Dépenses</h2>
+    <button id="btn-add-depense" class="btn primary">➕ Ajouter</button>
+  </div>
+
+  <div class="summary" style="margin-top:6px;">
+    <div style="font-weight:800;">Total des dépenses : <span id="depenses-total">€0.00</span></div>
+    <div>Date : <span id="depenses-date">--/--/----</span></div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Catégorie</th>
+        <th>Description</th>
+        <th>Montant (€)</th>
+        <th style="text-align:center">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="depenses-table-body"></tbody>
+  </table>
+</section>
 
       <!-- QUITTANCES -->
       <section id="section-quittances">
